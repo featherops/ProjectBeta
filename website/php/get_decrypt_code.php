@@ -17,8 +17,11 @@ if (isset($_POST['software_key'])) {
 		die("Connection failed: " . $conn->connect_error);
 	}  
 	
-	$sql = "SELECT decrypt_key FROM nekros_keys WHERE software_key=" . "'" . $software_key_encoded . "'";
-	$result = $conn->query($sql);
+	$sql = "SELECT decrypt_key FROM nekros_keys WHERE software_key=?";
+	$stmt = $conn->prepare($sql);
+	$stmt->bind_param("s", $software_key_encoded);
+	$stmt->execute();
+	$result = $stmt->get_result();
 	if ($result->num_rows > 0) {
 		while($row = $result->fetch_assoc()) {
 			echo $row["decrypt_key"];
@@ -26,7 +29,8 @@ if (isset($_POST['software_key'])) {
 	} else {
 		echo "Failed";
 	}
-	 $conn->close();
+	$stmt->close();
+	$conn->close();
 }
 else {
 	echo "Failed";
